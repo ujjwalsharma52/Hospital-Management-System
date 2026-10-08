@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{layout :: layout(~{::content})}">
+    <div th:fragment="content">
+        <div class="page-header">
+            <div>
+                <h1 th:text="${report.id != null ? 'Edit Lab Report' : 'New Lab Test Request'}">Lab Test Request</h1>
+                <p class="text-muted" style="margin-top:4px;">Record test parameters, diagnostic readings, and reference ranges</p>
+            </div>
+            <div class="page-actions">
+                <a th:href="@{/lab}" class="btn btn-outline">
+                    <i class='bx bx-arrow-back'></i> Back to List
+                </a>
+            </div>
+        </div>
+
+        <div class="card" style="max-width: 900px; margin: 0 auto;">
+            <div class="card-header">
+                <h2 style="font-size:1.1rem; margin:0;">
+                    <i class='bx bxs-flask mr-1 text-primary'></i> Test &amp; Diagnostic Details
+                </h2>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/lab/save}" method="post">
+                    <input type="hidden" name="id" th:value="${report.id}">
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="patientSelect">Patient <span class="text-red">*</span></label>
+                            <select id="patientSelect" name="patientId" class="form-control" required>
+                                <option value="">-- Select Patient --</option>
+                                <option th:each="p : ${patients}"
+                                        th:value="${p.id}"
+                                        th:text="${p.fullName} + ' (' + ${p.patientId} + ')'"
+                                        th:selected="${report.patient != null && report.patient.id == p.id}">
+                                    John Doe (PID-1001)
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="doctorSelect">Prescribing Doctor</label>
+                            <select id="doctorSelect" name="doctorId" class="form-control">
+                                <option value="">-- Select Doctor (Optional) --</option>
+                                <option th:each="d : ${doctors}"
+                                        th:value="${d.id}"
+                                        th:text="'Dr. ' + ${d.fullName} + ' (' + ${d.specialization} + ')'"
+                                        th:selected="${report.doctor != null && report.doctor.id == d.id}">
+                                    Dr. Sharma (Cardiology)
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="testName">Test / Investigation Name <span class="text-red">*</span></label>
+                            <input type="text" id="testName" name="testName" th:value="${report.testName}"
+                                   class="form-control" placeholder="e.g. Complete Blood Count (CBC)" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="testCategory">Category <span class="text-red">*</span></label>
+                            <select id="testCategory" name="testCategory" class="form-control" required>
+                                <option value="">-- Select Category --</option>
+                                <option value="Blood Test" th:selected="${report.testCategory == 'Blood Test'}">Blood Test</option>
+                                <option value="Urine Test" th:selected="${report.testCategory == 'Urine Test'}">Urine Test</option>
+                                <option value="Biochemistry" th:selected="${report.testCategory == 'Biochemistry'}">Biochemistry</option>
+                                <option value="X-Ray" th:selected="${report.testCategory == 'X-Ray'}">X-Ray</option>
+                                <option value="CT Scan" th:selected="${report.testCategory == 'CT Scan'}">CT Scan</option>
+                                <option value="MRI Scan" th:selected="${report.testCategory == 'MRI Scan'}">MRI Scan</option>
+                                <option value="Ultrasound" th:selected="${report.testCategory == 'Ultrasound'}">Ultrasound</option>
+                                <option value="ECG" th:selected="${report.testCategory == 'ECG'}">ECG</option>
+                                <option value="Pathology" th:selected="${report.testCategory == 'Pathology'}">Pathology</option>
+                                <option value="Other" th:selected="${report.testCategory == 'Other'}">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="cost">Test Cost (₹) <span class="text-red">*</span></label>
+                            <input type="number" step="0.01" id="cost" name="cost" th:value="${report.cost != null ? report.cost : 0.0}"
+                                   class="form-control" placeholder="0.00" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="status">Test Status <span class="text-red">*</span></label>
+                            <select id="status" name="status" class="form-control" required>
+                                <option value="Pending" th:selected="${report.status == 'Pending'}">Pending</option>
+                                <option value="In Progress" th:selected="${report.status == 'In Progress'}">In Progress</option>
+                                <option value="Completed" th:selected="${report.status == 'Completed'}">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="normalRange">Normal Reference Range</label>
+                            <input type="text" id="normalRange" name="normalRange" th:value="${report.normalRange}"
+                                   class="form-control" placeholder="e.g. Hemoglobin: 13.5 - 17.5 g/dL">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="result">Test Result / Findings</label>
+                        <textarea id="result" name="result" rows="4" class="form-control"
+                                  placeholder="Enter detailed test results, clinical readings, or analytical observations..."
+                                  th:text="${report.result}"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="remarks">Pathologist Remarks / Recommendations</label>
+                        <textarea id="remarks" name="remarks" rows="2" class="form-control"
+                                  placeholder="Any clinical remarks, caveats, or follow-up advice..."
+                                  th:text="${report.remarks}"></textarea>
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:24px;">
+                        <a th:href="@{/lab}" class="btn btn-outline">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class='bx bx-save'></i> Save Lab Report
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

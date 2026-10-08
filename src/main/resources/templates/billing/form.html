@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{layout :: layout(~{::content})}">
+    <div th:fragment="content">
+        <div class="page-header">
+            <h1><i class='bx bxs-receipt mr-1'></i> <span th:text="${bill.id != null} ? 'Edit Bill' : 'Create Bill'">New Bill</span></h1>
+            <div class="page-actions"><a th:href="@{/billing}" class="btn btn-outline"><i class='bx bx-arrow-back'></i> Back</a></div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <form th:action="@{/billing/save}" th:object="${bill}" method="post">
+                    <input type="hidden" th:field="*{id}">
+                    <div class="form-row">
+                        <div class="form-group"><label>Patient *</label>
+                            <select name="patientId" class="form-control" required>
+                                <option value="">Select Patient</option>
+                                <option th:each="p : ${patients}" th:value="${p.id}" th:text="${p.fullName}" th:selected="${bill.patient != null and bill.patient.id == p.id}">Patient</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Payment Method</label>
+                            <select th:field="*{paymentMethod}" class="form-control">
+                                <option value="Cash">Cash</option><option value="Card">Card</option>
+                                <option value="UPI">UPI</option><option value="Insurance">Insurance</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Consultation Fee (₹)</label><input type="number" step="0.01" th:field="*{consultationFee}" class="form-control"></div>
+                        <div class="form-group"><label>Medicine Cost (₹)</label><input type="number" step="0.01" th:field="*{medicineCost}" class="form-control"></div>
+                        <div class="form-group"><label>Lab Test Cost (₹)</label><input type="number" step="0.01" th:field="*{labTestCost}" class="form-control"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Room Charges (₹)</label><input type="number" step="0.01" th:field="*{roomCharges}" class="form-control"></div>
+                        <div class="form-group"><label>Other Charges (₹)</label><input type="number" step="0.01" th:field="*{otherCharges}" class="form-control"></div>
+                        <div class="form-group"><label>Discount (₹)</label><input type="number" step="0.01" th:field="*{discount}" class="form-control"></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Paid Amount (₹)</label><input type="number" step="0.01" th:field="*{paidAmount}" class="form-control"></div>
+                    </div>
+                    <div class="form-group"><label>Description</label><textarea th:field="*{description}" class="form-control" rows="2"></textarea></div>
+                    <div style="display:flex; gap:12px;">
+                        <button type="submit" class="btn btn-primary"><i class='bx bx-save'></i> <span th:text="${bill.id != null} ? 'Update Bill' : 'Generate Bill'">Save</span></button>
+                        <a th:href="@{/billing}" class="btn btn-outline">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

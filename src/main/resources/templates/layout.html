@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle != null ? pageTitle + ' | MedCare HMS' : 'MedCare Hospital Portal'}">MedCare Hospital Portal</title>
+    <meta name="description" content="Comprehensive Hospital Management System">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <!-- Boxicons for clean modern medical and system icons -->
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <script>
+        (function() {
+            var savedTheme = localStorage.getItem('hms-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+</head>
+
+<body>
+    <div class="app-layout" th:fragment="layout(content)">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">
+                    <i class='bx bx-plus-medical'></i>
+                </div>
+                <div class="brand-text">
+                    MedCare
+                    <span>Hospital Portal</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <!-- Overview Section -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Overview</div>
+                    <a th:href="@{/dashboard}" class="nav-link">
+                        <span class="nav-icon"><i class='bx bxs-dashboard'></i></span>
+                        <span sec:authorize="hasRole('DOCTOR')">Doctor Dashboard</span>
+                        <span sec:authorize="hasRole('RECEPTIONIST')">Reception Desk</span>
+                        <span sec:authorize="hasRole('ADMIN')">Executive Dashboard</span>
+                    </a>
+                </div>
+
+                <!-- Doctor Navigation -->
+                <div sec:authorize="hasRole('DOCTOR')">
+                    <div class="nav-section">
+                        <div class="nav-section-title">My Practice</div>
+                        <a th:href="@{/appointments}" class="nav-link">
+                            <span class="nav-icon"><i class='bx bxs-calendar-check'></i></span>
+                            Appointments
+                        </a>
+                        <a th:href="@{/patients}" class="nav-link">
+                            <span class="nav-icon"><i class='bx bxs-user-plus'></i></span>
+                            Patients
+                        </a>
+                        <a th:href="@{/prescriptions}" class="nav-link">
+                            <span class="nav-icon"><i class='bx bx-notepad'></i></span>
+                            Prescriptions (Rx)
+                        </a>
+                        <a th:href="@{/lab}" class="nav-link">
+                            <span class="nav-icon"><i class='bx bxs-flask'></i></span>
+                            Lab Reports
+                        </a>
+                    </div>
+                    <div class="nav-section">
+                        <div class="nav-section-title">Clinical Resources</div>
+                        <a th:href="@{/beds}" class="nav-link">
+                            <span class="nav-icon"><i class='bx bxs-bed'></i></span>
+                            Beds &amp; Wards
+                        </a>
+                        <a th:href="@{/pharmacy}" class="nav-link">
+                            <span class="nav-icon"><i class='bx bxs-capsule'></i></span>
+                            Pharmacy
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Receptionist Navigation -->
+                <div sec:authorize="hasRole('RECEPTIONIST')">
+                    <div class="nav-section">
+                        <div class="nav-section-title">Front Desk</div>
+                        <a th:href="@{/patients}" class="nav-link">
+                            <span class="nav-icon"><i class='bx bxs-user-plus'></i></span>
+                            Patients
+                        </a>
+                        <a th:href="@{/appointments}" class="nav-link">
+                            <span class="nav-icon"><i class='bx bxs-calendar-check'></i></span>
+                            Appointments
+                        </a>
+                        <a th:href="@{/prescriptions}" class="nav-link">
+                            <span class="nav-icon"><i class='bx bx-notepad'></i></span>
+                            Prescriptions (Rx)
+                        </a>
+                        <a th:href="@{/beds}" class="nav-link">
+                            <span class="nav-icon"><i class='bx bxs-bed'></i></span>
+                            Beds &amp; Wards
+                        </a>
+                        <a th:href="@{/billing}" class="nav-link">
+                            <span class="nav-icon"><i class='bx bxs-receipt'></i></span>
+                            Billing
+                        </a>
+                    </div>
+                    <div class="nav-section">
+                        <div class="nav-section-title">Hospital Roster</div>
+                        <a th:href="@{/doctors}" class="nav-link">
+                            <span class="nav-icon"><i class='bx bxs-user-badge'></i></span>
+                            Doctors Directory
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Admin Navigation (Full Suite) -->
+                <div sec:authorize="hasRole('ADMIN')">
+                    <div class="nav-section">
+                        <div class="nav-section-title">Patient Care</div>
+                        <a th:href="@{/patients}" class="nav-link">
+                            <span class="nav-icon"><i class='bx bxs-user-plus'></i></span>
+                            Patients
+                        </a>
+                        <a th:href="@{/appointments}" class="nav-link">
+                            <span class="nav-icon"><i class='bx bxs-calendar-check'></i></span>
+                            Appointments
+                        </a>
+                        <a th:href="@{/prescriptions}" class="nav-link">
+                            <span class="nav-icon"><i class='bx bx-notepad'></i></span>
+                            Prescriptions (Rx)
+                        </a>
+                        <a th:href="@{/lab}" class="nav-link">
+                            <span class="nav-icon"><i class='bx bxs-flask'></i></span>
+                            Lab Reports
+                        </a>
+                    </div>
+
+                    <div class="nav-section">
+                        <div class="nav-section-title">Hospital Operations</div>
+                        <a th:href="@{/doctors}" class="nav-link">
+                            <span class="nav-icon"><i class='bx bxs-user-badge'></i></span>
+                            Doctors
+                        </a>
+                        <a th:href="@{/beds}" class="nav-link">
+                            <span class="nav-icon"><i class='bx bxs-bed'></i></span>
+                            Beds &amp; Wards
+                        </a>
+                        <a th:href="@{/pharmacy}" class="nav-link">
+                            <span class="nav-icon"><i class='bx bxs-capsule'></i></span>
+                            Pharmacy
+                        </a>
+                    </div>
+
+                    <div class="nav-section">
+                        <div class="nav-section-title">Finance &amp; Accounts</div>
+                        <a th:href="@{/billing}" class="nav-link">
+                            <span class="nav-icon"><i class='bx bxs-receipt'></i></span>
+                            Billing &amp; Invoices
+                        </a>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar" sec:authentication="name" th:text="${#strings.substring(#authentication.name, 0, 2).toUpperCase()}">AD</div>
+                    <div class="user-info">
+                        <div class="user-name" sec:authentication="name">Admin</div>
+                        <div class="user-role" sec:authentication="principal.authorities"
+                             th:text="${#strings.replace(#strings.toString(#authentication.authorities), '[ROLE_', '').replace(']', '')}">ADMIN</div>
+                    </div>
+                    <a th:href="@{/logout}" class="btn btn-icon btn-outline" title="Logout" style="margin-left:auto;">
+                        <i class='bx bx-log-out'></i>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-left" style="display:flex; align-items:center; gap:12px;">
+                    <button type="button" class="btn btn-sm btn-outline mobile-toggle-btn" onclick="toggleSidebar()" title="Toggle Navigation Menu">
+                        <i class='bx bx-menu' style="font-size:20px;"></i>
+                    </button>
+                    <h1 th:text="${pageTitle ?: 'Dashboard'}">Dashboard</h1>
+                </div>
+                <div class="header-right" style="display:flex; align-items:center; gap:14px;">
+                    <!-- Role Switcher (Admin Only) -->
+                    <div sec:authorize="hasRole('ADMIN')" class="dashboard-switcher" style="margin-bottom:0;">
+                        <a th:href="@{/dashboard/admin}" class="switcher-tab" th:classappend="${#httpServletRequest != null && #httpServletRequest.requestURI == '/dashboard/admin' ? 'active' : ''}">Admin</a>
+                        <a th:href="@{/dashboard/doctor}" class="switcher-tab" th:classappend="${#httpServletRequest != null && #httpServletRequest.requestURI == '/dashboard/doctor' ? 'active' : ''}">Doctor</a>
+                        <a th:href="@{/dashboard/receptionist}" class="switcher-tab" th:classappend="${#httpServletRequest != null && #httpServletRequest.requestURI == '/dashboard/receptionist' ? 'active' : ''}">Reception</a>
+                    </div>
+
+                    <span class="hero-pill" style="margin:0;">
+                        <i class='bx bx-calendar'></i>
+                        <span th:text="${#temporals.format(#temporals.createNow(), 'dd MMM yyyy')}">05 Oct 2026</span>
+                    </span>
+
+                    <!-- Theme Switcher -->
+                    <button type="button" class="theme-toggle-btn" id="themeToggle" onclick="toggleTheme()" title="Switch Light/Dark Theme">
+                        <div class="toggle-track">
+                            <i class='bx bxs-sun icon-sun'></i>
+                            <i class='bx bxs-moon icon-moon'></i>
+                            <span class="toggle-thumb"></span>
+                        </div>
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <!-- Flash Messages -->
+                <div th:if="${success}" class="alert alert-success">
+                    <i class='bx bx-check-circle'></i>
+                    <span th:text="${success}">Operation completed successfully.</span>
+                </div>
+                <div th:if="${error}" class="alert alert-danger">
+                    <i class='bx bx-error-circle'></i>
+                    <span th:text="${error}">An error occurred.</span>
+                </div>
+
+                <!-- Page Content Fragment Injection -->
+                <div th:replace="${content}">Page content goes here</div>
+            </div>
+
+            <!-- Theme Switcher Script inside fragment -->
+            <script th:src="@{/js/theme.js}"></script>
+        </main>
+    </div>
+
+    <!-- Theme Switcher Script for direct renders -->
+    <script th:src="@{/js/theme.js}"></script>
+</body>
+</html>

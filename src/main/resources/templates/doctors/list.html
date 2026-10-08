@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{layout :: layout(~{::content})}">
+    <div th:fragment="content">
+        <div class="page-header">
+            <h1><i class='bx bxs-user-badge mr-1'></i> Doctors</h1>
+            <div class="page-actions">
+                <a th:href="@{/doctors/add}" class="btn btn-primary"><i class='bx bx-plus'></i> Add Doctor</a>
+            </div>
+        </div>
+
+        <div class="search-bar">
+            <form th:action="@{/doctors}" method="get" class="search-input-wrapper">
+                <span class="search-icon"><i class='bx bx-search'></i></span>
+                <input type="text" name="search" th:value="${search}" placeholder="Search doctors by name..." class="form-control" style="padding-left:42px;">
+            </form>
+        </div>
+
+        <div class="card">
+            <div class="card-body" style="padding:0;">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th><th>Name</th><th>Specialization</th><th>Phone</th>
+                                <th>Fee (₹)</th><th>Available</th><th>Status</th><th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="doctor, stat : ${doctors}">
+                                <td th:text="${stat.index + 1}">1</td>
+                                <td><a th:href="@{/doctors/view/{id}(id=${doctor.id})}" th:text="${doctor.fullName}">Name</a></td>
+                                <td th:text="${doctor.specialization}">Specialization</td>
+                                <td th:text="${doctor.phone}">Phone</td>
+                                <td th:text="${doctor.consultationFee}">500</td>
+                                <td th:text="${doctor.availableDays}">Mon-Fri</td>
+                                <td>
+                                    <span class="badge" th:classappend="${doctor.status == 'Active'} ? 'badge-active' : (${doctor.status == 'On Leave'} ? 'badge-on-leave' : 'badge-inactive')" th:text="${doctor.status}">Active</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a th:href="@{/doctors/view/{id}(id=${doctor.id})}" class="btn btn-sm btn-outline"><i class='bx bx-show'></i></a>
+                                        <a th:href="@{/doctors/edit/{id}(id=${doctor.id})}" class="btn btn-sm btn-primary"><i class='bx bx-edit'></i></a>
+                                        <a th:href="@{/doctors/delete/{id}(id=${doctor.id})}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this doctor?')"><i class='bx bx-trash'></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(doctors)}">
+                                <td colspan="8">
+                                    <div class="empty-state">
+                                        <div class="empty-icon">👨‍⚕️</div>
+                                        <h3>No doctors found</h3>
+                                        <p>Add doctors to the system</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

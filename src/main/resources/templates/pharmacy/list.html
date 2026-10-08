@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{layout :: layout(~{::content})}">
+    <div th:fragment="content">
+        <div class="page-header">
+            <h1><i class='bx bxs-capsule mr-1'></i> Pharmacy</h1>
+            <div class="page-actions">
+                <a th:href="@{/prescriptions(status='Active')}" class="btn btn-outline"><i class='bx bx-notepad'></i> Pending Rx to Dispense</a>
+                <a th:href="@{/pharmacy/add}" class="btn btn-primary"><i class='bx bx-plus'></i> Add Medicine</a>
+            </div>
+        </div>
+
+        <!-- Low Stock Alert -->
+        <div th:if="${!#lists.isEmpty(lowStockMedicines)}" class="alert alert-warning">
+            <i class='bx bx-error'></i>
+            <span th:text="${#lists.size(lowStockMedicines)} + ' medicines are running low on stock!'">Low stock alert</span>
+        </div>
+
+        <div class="search-bar">
+            <form th:action="@{/pharmacy}" method="get" class="search-input-wrapper">
+                <span class="search-icon"><i class='bx bx-search'></i></span>
+                <input type="text" name="search" th:value="${search}" placeholder="Search medicines..." class="form-control" style="padding-left:42px;">
+            </form>
+        </div>
+
+        <div class="card">
+            <div class="card-body" style="padding:0;">
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>#</th><th>Name</th><th>Category</th><th>Manufacturer</th><th>Price (₹)</th><th>Stock</th><th>Reorder Level</th><th>Actions</th></tr></thead>
+                        <tbody>
+                            <tr th:each="med, stat : ${medicines}" th:classappend="${med.stockQuantity <= med.reorderLevel} ? 'low-stock' : ''">
+                                <td th:text="${stat.index + 1}">1</td>
+                                <td>
+                                    <div th:text="${med.name}">Medicine</div>
+                                    <small class="text-muted" th:text="${med.genericName}">Generic</small>
+                                </td>
+                                <td><span class="badge badge-occupied" th:text="${med.category}">Tablet</span></td>
+                                <td th:text="${med.manufacturer}">Manufacturer</td>
+                                <td th:text="${med.price}">0</td>
+                                <td>
+                                    <span th:classappend="${med.stockQuantity <= med.reorderLevel} ? 'text-red' : 'text-green'" th:text="${med.stockQuantity}">0</span>
+                                    <span th:if="${med.stockQuantity <= med.reorderLevel}" style="font-size:10px;" class="text-red"> ⚠ LOW</span>
+                                </td>
+                                <td th:text="${med.reorderLevel}">50</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a th:href="@{/pharmacy/edit/{id}(id=${med.id})}" class="btn btn-sm btn-primary"><i class='bx bx-edit'></i></a>
+                                        <a th:href="@{/pharmacy/delete/{id}(id=${med.id})}" class="btn btn-sm btn-danger" onclick="return confirm('Delete?')"><i class='bx bx-trash'></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(medicines)}">
+                                <td colspan="8"><div class="empty-state"><div class="empty-icon">💊</div><h3>No medicines found</h3></div></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

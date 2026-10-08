@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{layout :: layout(~{::content})}">
+    <div th:fragment="content">
+        <div class="page-header">
+            <div>
+                <h1 th:text="${ward.id != null ? 'Edit Hospital Ward' : 'Add New Hospital Ward'}">Add Ward</h1>
+                <p class="text-muted" style="margin-top:4px;">Define department, floor placement, and bed capacity</p>
+            </div>
+            <div class="page-actions">
+                <a th:href="@{/beds/wards}" class="btn btn-outline">
+                    <i class='bx bx-arrow-back'></i> Back to Wards
+                </a>
+            </div>
+        </div>
+
+        <div class="card" style="max-width: 800px; margin: 0 auto;">
+            <div class="card-header">
+                <h2 style="font-size:1.1rem; margin:0;">
+                    <i class='bx bxs-buildings mr-1 text-primary'></i> Ward Configuration
+                </h2>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/beds/wards/save}" method="post">
+                    <input type="hidden" name="id" th:value="${ward.id}">
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="wardName">Ward Name <span class="text-red">*</span></label>
+                            <input type="text" id="wardName" name="wardName" th:value="${ward.wardName}"
+                                   class="form-control" placeholder="e.g. Intensive Care Unit (ICU-A)" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="wardType">Ward Type <span class="text-red">*</span></label>
+                            <select id="wardType" name="wardType" class="form-control" required>
+                                <option value="">-- Select Ward Type --</option>
+                                <option value="General" th:selected="${ward.wardType == 'General'}">General Ward</option>
+                                <option value="ICU" th:selected="${ward.wardType == 'ICU'}">ICU (Intensive Care)</option>
+                                <option value="CCU" th:selected="${ward.wardType == 'CCU'}">CCU (Cardiac Care)</option>
+                                <option value="Private" th:selected="${ward.wardType == 'Private'}">Private Suite</option>
+                                <option value="Semi-Private" th:selected="${ward.wardType == 'Semi-Private'}">Semi-Private</option>
+                                <option value="Emergency" th:selected="${ward.wardType == 'Emergency'}">Emergency / Trauma</option>
+                                <option value="Maternity" th:selected="${ward.wardType == 'Maternity'}">Maternity &amp; NICU</option>
+                                <option value="Pediatric" th:selected="${ward.wardType == 'Pediatric'}">Pediatric Ward</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="floorNumber">Floor Number <span class="text-red">*</span></label>
+                            <input type="number" id="floorNumber" name="floorNumber"
+                                   th:value="${ward.floorNumber != null ? ward.floorNumber : 1}"
+                                   class="form-control" min="0" max="50" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="totalBeds">Total Bed Capacity <span class="text-red">*</span></label>
+                            <input type="number" id="totalBeds" name="totalBeds"
+                                   th:value="${ward.totalBeds != null ? ward.totalBeds : 10}"
+                                   class="form-control" min="1" max="500" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="description">Ward Description &amp; Facilities</label>
+                        <textarea id="description" name="description" rows="3" class="form-control"
+                                  placeholder="Describe amenities, emergency access, specialized medical equipment..."
+                                  th:text="${ward.description}"></textarea>
+                    </div>
+
+                    <div class="form-group" style="display:flex; align-items:center; gap:8px;">
+                        <input type="checkbox" id="active" name="active" value="true"
+                               th:checked="${ward.id == null || ward.active}">
+                        <label for="active" style="margin:0; cursor:pointer; font-weight:500;">
+                            Ward is active and accepting admissions
+                        </label>
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:24px;">
+                        <a th:href="@{/beds/wards}" class="btn btn-outline">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class='bx bx-save'></i> Save Ward
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

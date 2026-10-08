@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{layout :: layout(~{::content})}">
+    <div th:fragment="content">
+        <div class="page-header">
+            <h1><i class='bx bxs-calendar-check mr-1'></i> Appointments</h1>
+            <div class="page-actions">
+                <a th:href="@{/appointments/add}" class="btn btn-primary"><i class='bx bx-plus'></i> New Appointment</a>
+            </div>
+        </div>
+
+        <!-- Status Filter -->
+        <div style="display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;">
+            <a th:href="@{/appointments}" class="btn btn-sm" th:classappend="${selectedStatus == null} ? 'btn-primary' : 'btn-outline'">All</a>
+            <a th:href="@{/appointments(status='Scheduled')}" class="btn btn-sm" th:classappend="${selectedStatus == 'Scheduled'} ? 'btn-primary' : 'btn-outline'">Scheduled</a>
+            <a th:href="@{/appointments(status='Completed')}" class="btn btn-sm" th:classappend="${selectedStatus == 'Completed'} ? 'btn-primary' : 'btn-outline'">Completed</a>
+            <a th:href="@{/appointments(status='Cancelled')}" class="btn btn-sm" th:classappend="${selectedStatus == 'Cancelled'} ? 'btn-primary' : 'btn-outline'">Cancelled</a>
+        </div>
+
+        <div class="card">
+            <div class="card-body" style="padding:0;">
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>#</th><th>Date</th><th>Time</th><th>Patient</th><th>Doctor</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
+                        <tbody>
+                            <tr th:each="apt, stat : ${appointments}">
+                                <td th:text="${stat.index + 1}">1</td>
+                                <td th:text="${apt.appointmentDate}">2026-10-06</td>
+                                <td th:text="${apt.appointmentTime}">10:00</td>
+                                <td th:text="${apt.patient.fullName}">Patient</td>
+                                <td th:text="${apt.doctor.fullName}">Doctor</td>
+                                <td th:text="${apt.reason}">Reason</td>
+                                <td>
+                                    <span class="badge" th:classappend="${apt.status == 'Scheduled'} ? 'badge-scheduled' : (${apt.status == 'Completed'} ? 'badge-completed' : (${apt.status == 'Cancelled'} ? 'badge-cancelled' : 'badge-in-progress'))" th:text="${apt.status}">Status</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a th:href="@{/appointments/edit/{id}(id=${apt.id})}" class="btn btn-sm btn-outline" title="Edit"><i class='bx bx-edit'></i></a>
+                                        <a th:if="${apt.status == 'Scheduled'}" th:href="@{/appointments/complete/{id}(id=${apt.id})}" class="btn btn-sm btn-success" title="Complete"><i class='bx bx-check'></i></a>
+                                        <a th:if="${apt.status == 'Scheduled'}" th:href="@{/appointments/cancel/{id}(id=${apt.id})}" class="btn btn-sm btn-danger" title="Cancel"><i class='bx bx-x'></i></a>
+                                        <a th:href="@{/appointments/delete/{id}(id=${apt.id})}" class="btn btn-sm btn-danger" onclick="return confirm('Delete?')"><i class='bx bx-trash'></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(appointments)}">
+                                <td colspan="8"><div class="empty-state"><div class="empty-icon">📅</div><h3>No appointments found</h3></div></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

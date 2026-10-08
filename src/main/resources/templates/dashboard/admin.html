@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout :: head}"></head>
+<body>
+<div th:replace="~{layout :: layout(~{::content})}">
+    <div th:fragment="content">
+
+        <!-- Admin View Switcher -->
+        <div sec:authorize="hasRole('ADMIN')" class="dashboard-switcher">
+            <a th:href="@{/dashboard/admin}" class="switcher-tab active">
+                <i class='bx bxs-shield'></i> Admin View
+            </a>
+            <a th:href="@{/dashboard/doctor}" class="switcher-tab">
+                <i class='bx bxs-user-badge'></i> Doctor View
+            </a>
+            <a th:href="@{/dashboard/receptionist}" class="switcher-tab">
+                <i class='bx bxs-id-card'></i> Receptionist View
+            </a>
+        </div>
+
+        <!-- Executive Hero Banner -->
+        <div class="role-hero-card">
+            <div class="role-hero-content">
+                <div class="role-hero-avatar" style="background: var(--gradient-primary);">
+                    <i class='bx bxs-shield-plus'></i>
+                </div>
+                <div class="role-hero-info">
+                    <h2>
+                        <span>Hospital Executive Dashboard</span>
+                        <span class="badge badge-active" style="font-size:12px;">System Live</span>
+                    </h2>
+                    <p class="text-secondary" style="font-size:14px; margin:0;">
+                        Hospital-wide Performance, Inpatient Care, OPD Activity &amp; Financials
+                    </p>
+                    <div class="role-hero-meta">
+                        <span class="hero-pill">
+                            <i class='bx bx-pulse'></i>
+                            <span th:text="${activePatients} + ' Admitted / Active'">Active</span>
+                        </span>
+                        <span class="hero-pill">
+                            <i class='bx bx-user-badge'></i>
+                            <span th:text="${activeDoctors} + ' Doctors On Duty'">Doctors</span>
+                        </span>
+                        <span class="hero-pill">
+                            <i class='bx bx-rupee'></i>
+                            <span th:text="'₹' + ${#numbers.formatDecimal(monthlyRevenue, 0, 0)} + ' Monthly Revenue'">Revenue</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <a th:href="@{/prescriptions/add}" class="btn btn-primary" style="background:#6366f1; border-color:#6366f1;">
+                    <i class='bx bx-notepad'></i> Write Rx
+                </a>
+                <a th:href="@{/patients/add}" class="btn btn-primary">
+                    <i class='bx bx-user-plus'></i> New Patient
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card blue">
+                <div class="stat-icon"><i class='bx bxs-user-plus'></i></div>
+                <div class="stat-value" th:text="${totalPatients}">0</div>
+                <div class="stat-label">Total Patients</div>
+                <div class="stat-change positive">
+                    <i class='bx bx-trending-up'></i>
+                    <span th:text="${newPatientsThisMonth} + ' this month'">0 this month</span>
+                </div>
+            </div>
+
+            <div class="stat-card green">
+                <div class="stat-icon"><i class='bx bxs-user-badge'></i></div>
+                <div class="stat-value" th:text="${totalDoctors}">0</div>
+                <div class="stat-label">Active Doctors</div>
+                <div class="stat-change positive">
+                    <span th:text="${activeDoctors} + ' on duty'">0 on duty</span>
+                </div>
+            </div>
+
+            <div class="stat-card orange">
+                <div class="stat-icon"><i class='bx bxs-calendar-check'></i></div>
+                <div class="stat-value" th:text="${todaysAppointments}">0</div>
+                <div class="stat-label">Today's Appointments</div>
+                <div class="stat-change">
+                    <span th:text="${scheduledAppointments} + ' scheduled'" class="text-yellow">0 scheduled</span>
+                </div>
+            </div>
+
+            <div class="stat-card cyan">
+                <div class="stat-icon"><i class='bx bxs-bed'></i></div>
+                <div class="stat-value" th:text="${availableBeds}">0</div>
+                <div class="stat-label">Available Beds</div>
+                <div class="stat-change">
+                    <span th:text="${occupiedBeds} + '/' + ${totalBeds} + ' occupied'" class="text-blue">0/0 occupied</span>
+                </div>
+            </div>
+
+            <div class="stat-card purple">
+                <div class="stat-icon"><i class='bx bxs-wallet'></i></div>
+                <div class="stat-value">₹<span th:text="${#numbers.formatDecimal(monthlyRevenue, 0, 0)}">0</span></div>
+                <div class="stat-label">Monthly Revenue</div>
+                <div class="stat-change">
+                    <span th:text="${pendingBills} + ' pending bills'" class="text-yellow">0 pending bills</span>
+                </div>
+            </div>
+
+            <div class="stat-card red">
+                <div class="stat-icon"><i class='bx bxs-error-alt'></i></div>
+                <div class="stat-value" th:text="${lowStockMedicines}">0</div>
+                <div class="stat-label">Low Stock Alerts</div>
+                <div class="stat-change">
+                    <span th:text="${pendingLabReports} + ' pending reports'" class="text-yellow">0 pending reports</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 📊 INTERACTIVE VISUAL ANALYTICS DASHBOARD (Chart.js) -->
+        <!-- ============================================================ -->
+
+        <!-- Analytics Row 1: Revenue Trends & Bed Occupancy -->
+        <div style="display:grid; grid-template-columns: 1.6fr 1fr; gap:24px; margin-bottom:24px;">
+            <!-- Revenue & Collection Trendline -->
+            <div class="card" style="margin-bottom:0;">
+                <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <h3 style="margin:0;"><i class='bx bx-trending-up mr-1 text-primary'></i> Financial Revenue &amp; Cash Collections</h3>
+                        <small class="text-muted">Monthly billing throughput vs collected receipts</small>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span class="badge" style="background:var(--primary-light); color:var(--primary-text); font-weight:600;">
+                            ₹<span th:text="${#numbers.formatDecimal(monthlyRevenue, 0, 0)}">0</span> This Month
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div style="position:relative; height:270px; width:100%;">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                    <div style="display:flex; justify-content:center; gap:24px; margin-top:14px; font-size:12px; color:var(--text-secondary);">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="display:inline-block; width:12px; height:12px; border-radius:3px; background:#2563eb;"></span>
+                            <strong>Billed Revenue (₹)</strong>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="display:inline-block; width:12px; height:12px; border-radius:3px; background:#10b981;"></span>
+                            <strong>Collected Inflow (₹)</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inpatient Bed Occupancy Doughnut -->
+            <div class="card" style="margin-bottom:0;">
+                <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <h3 style="margin:0;"><i class='bx bx-pie-chart-alt-2 mr-1 text-cyan'></i> Ward Bed Occupancy</h3>
+                        <small class="text-muted">Real-time inpatient capacity</small>
+                    </div>
+                    <span class="badge" th:classappend="${occupancyRate > 75} ? 'badge-cancelled' : 'badge-available'" th:text="${occupancyRate} + '% Occupancy'">
+                        35% Occupancy
+                    </span>
+                </div>
+                <div class="card-body" style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                    <div style="position:relative; height:210px; width:210px;">
+                        <canvas id="bedOccupancyChart"></canvas>
+                        <!-- Center Label in Doughnut -->
+                        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); text-align:center; pointer-events:none;">
+                            <div style="font-size:24px; font-weight:800; color:var(--text-primary);" th:text="${totalBeds}">0</div>
+                            <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:600;">Total Beds</div>
+                        </div>
+                    </div>
+
+                    <!-- Bed Stat Micro Pills -->
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%; margin-top:16px;">
+                        <div style="padding:10px; background:var(--bg-surface-hover); border-radius:8px; text-align:center; border:1px solid var(--border-color);">
+                            <span style="font-size:11px; color:var(--text-muted); display:block;">Available</span>
+                            <strong style="font-size:16px; color:#10b981;" th:text="${availableBeds}">0</strong>
+                        </div>
+                        <div style="padding:10px; background:var(--bg-surface-hover); border-radius:8px; text-align:center; border:1px solid var(--border-color);">
+                            <span style="font-size:11px; color:var(--text-muted); display:block;">Occupied</span>
+                            <strong style="font-size:16px; color:#ef4444;" th:text="${occupiedBeds}">0</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Row 2: Appointment Distribution & Ward Capacities -->
+        <div style="display:grid; grid-template-columns: 1fr 1.2fr; gap:24px; margin-bottom:24px;">
+            <!-- Appointment Status Breakdown -->
+            <div class="card" style="margin-bottom:0;">
+                <div class="card-header">
+                    <h3 style="margin:0;"><i class='bx bx-calendar-event mr-1 text-orange'></i> Appointment Pipeline</h3>
+                    <small class="text-muted">Scheduled, completed &amp; cancelled bookings</small>
+                </div>
+                <div class="card-body">
+                    <div style="position:relative; height:220px; width:100%;">
+                        <canvas id="appointmentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ward Distribution Capacity -->
+            <div class="card" style="margin-bottom:0;">
+                <div class="card-header">
+                    <h3 style="margin:0;"><i class='bx bx-building-house mr-1 text-purple'></i> Ward Capacity Breakdown</h3>
+                    <small class="text-muted">Total allocated beds per facility ward</small>
+                </div>
+                <div class="card-body">
+                    <div style="position:relative; height:220px; width:100%;">
+                        <canvas id="wardChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Grid: Today's Appointments & Recent Patients -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+            <!-- Today's Appointments -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class='bx bxs-calendar-check mr-1'></i> Today's Appointments</h3>
+                    <a th:href="@{/appointments}" class="btn btn-sm btn-outline">View All</a>
+                </div>
+                <div class="card-body" style="padding:0;">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Patient</th>
+                                    <th>Doctor</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="apt : ${todaysAppointmentsList}">
+                                    <td th:text="${apt.appointmentTime}">10:00</td>
+                                    <td th:text="${apt.patient.fullName}">Patient</td>
+                                    <td th:text="${apt.doctor.fullName}">Doctor</td>
+                                    <td>
+                                        <span class="badge"
+                                              th:classappend="${apt.status == 'Scheduled'} ? 'badge-scheduled' :
+                                                              (${apt.status == 'Completed'} ? 'badge-completed' :
+                                                              (${apt.status == 'Cancelled'} ? 'badge-cancelled' : 'badge-in-progress'))"
+                                              th:text="${apt.status}">Status</span>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(todaysAppointmentsList)}">
+                                    <td colspan="4" class="text-center text-muted" style="padding:30px;">
+                                        No appointments scheduled for today
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Patients -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class='bx bxs-user-detail mr-1'></i> Recent Patients</h3>
+                    <a th:href="@{/patients}" class="btn btn-sm btn-outline">View All</a>
+                </div>
+                <div class="card-body" style="padding:0;">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Gender</th>
+                                    <th>Blood Group</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="patient : ${recentPatients}">
+                                    <td th:text="${patient.fullName}">Patient</td>
+                                    <td th:text="${patient.gender}">M</td>
+                                    <td th:text="${patient.bloodGroup}">O+</td>
+                                    <td>
+                                        <span class="badge"
+                                              th:classappend="${patient.status == 'Active'} ? 'badge-active' : 'badge-inactive'"
+                                              th:text="${patient.status}">Active</span>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(recentPatients)}">
+                                    <td colspan="4" class="text-center text-muted" style="padding:30px;">
+                                        No patients registered yet
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3><i class='bx bxs-zap mr-1'></i> Quick Actions</h3>
+            </div>
+            <div class="card-body" style="display:flex; gap:12px; flex-wrap:wrap;">
+                <a th:href="@{/prescriptions/add}" class="btn btn-primary" style="background:#6366f1; border-color:#6366f1;">
+                    <i class='bx bx-notepad'></i> Write Prescription (Rx)
+                </a>
+                <a th:href="@{/patients/add}" class="btn btn-primary">
+                    <i class='bx bx-user-plus'></i> New Patient
+                </a>
+                <a th:href="@{/appointments/add}" class="btn btn-success">
+                    <i class='bx bx-calendar-plus'></i> Book Appointment
+                </a>
+                <a th:href="@{/billing/add}" class="btn btn-warning">
+                    <i class='bx bx-receipt'></i> Create Bill
+                </a>
+                <a th:href="@{/lab/add}" class="btn btn-outline">
+                    <i class='bx bx-test-tube'></i> New Lab Report
+                </a>
+                <a th:href="@{/pharmacy/add}" class="btn btn-outline">
+                    <i class='bx bx-capsule'></i> Add Medicine
+                </a>
+            </div>
+        </div>
+
+        <!-- Load Chart.js Library -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+        <!-- Dynamic Chart.js Initialization -->
+        <script th:inline="javascript">
+            /*<![CDATA[*/
+            document.addEventListener('DOMContentLoaded', function () {
+                const chartMonths = /*[[${chartMonths}]]*/ ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'];
+                const revenueTrends = /*[[${chartRevenueTrends}]]*/ [18500, 21600, 24000, 25900, 27000, 28500];
+                const collectionTrends = /*[[${chartCollectionTrends}]]*/ [14000, 17200, 20100, 22500, 24800, 26000];
+
+                const availableBeds = /*[[${availableBeds}]]*/ 8;
+                const occupiedBeds = /*[[${occupiedBeds}]]*/ 3;
+
+                const wardNames = /*[[${chartWardNames}]]*/ ['General Ward A', 'ICU Ward', 'Private Ward B'];
+                const wardCapacities = /*[[${chartWardCapacities}]]*/ [20, 10, 8];
+
+                const scheduledApts = /*[[${chartScheduledApts}]]*/ 5;
+                const completedApts = /*[[${chartCompletedApts}]]*/ 8;
+                const cancelledApts = /*[[${chartCancelledApts}]]*/ 2;
+
+                function getThemeColors() {
+                    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                    return {
+                        text: isDark ? '#94a3b8' : '#64748b',
+                        grid: isDark ? 'rgba(255, 255, 255, 0.07)' : 'rgba(0, 0, 0, 0.05)',
+                        surface: isDark ? '#1e293b' : '#ffffff',
+                        border: isDark ? '#334155' : '#e2e8f0'
+                    };
+                }
+
+                const theme = getThemeColors();
+
+                // 1. Revenue & Collections Trendline Chart
+                const revCanvas = document.getElementById('revenueChart');
+                if (revCanvas) {
+                    const ctx = revCanvas.getContext('2d');
+                    const revGrad = ctx.createLinearGradient(0, 0, 0, 260);
+                    revGrad.addColorStop(0, 'rgba(37, 99, 235, 0.28)');
+                    revGrad.addColorStop(1, 'rgba(37, 99, 235, 0.00)');
+
+                    const colGrad = ctx.createLinearGradient(0, 0, 0, 260);
+                    colGrad.addColorStop(0, 'rgba(16, 185, 129, 0.22)');
+                    colGrad.addColorStop(1, 'rgba(16, 185, 129, 0.00)');
+
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: chartMonths,
+                            datasets: [
+                                {
+                                    label: 'Billed Revenue',
+                                    data: revenueTrends,
+                                    borderColor: '#2563eb',
+                                    backgroundColor: revGrad,
+                                    fill: true,
+                                    tension: 0.38,
+                                    pointBackgroundColor: '#2563eb',
+                                    pointRadius: 4,
+                                    pointHoverRadius: 7,
+                                    borderWidth: 2.5
+                                },
+                                {
+                                    label: 'Cash Collections',
+                                    data: collectionTrends,
+                                    borderColor: '#10b981',
+                                    backgroundColor: colGrad,
+                                    fill: true,
+                                    tension: 0.38,
+                                    pointBackgroundColor: '#10b981',
+                                    pointRadius: 4,
+                                    pointHoverRadius: 7,
+                                    borderWidth: 2.5
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: theme.surface,
+                                    titleColor: theme.text,
+                                    bodyColor: theme.text,
+                                    borderColor: theme.border,
+                                    borderWidth: 1,
+                                    padding: 12,
+                                    boxPadding: 6,
+                                    callbacks: {
+                                        label: function (ctx) {
+                                            return ' ' + ctx.dataset.label + ': ₹' + Number(ctx.parsed.y).toLocaleString();
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { color: theme.text, font: { family: 'Inter', size: 12 } }
+                                },
+                                y: {
+                                    grid: { color: theme.grid },
+                                    ticks: {
+                                        color: theme.text,
+                                        font: { family: 'Inter', size: 12 },
+                                        callback: function (val) { return '₹' + val.toLocaleString(); }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // 2. Bed Occupancy Doughnut Chart
+                const bedCanvas = document.getElementById('bedOccupancyChart');
+                if (bedCanvas) {
+                    new Chart(bedCanvas, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Available Beds', 'Occupied Beds'],
+                            datasets: [{
+                                data: [availableBeds, occupiedBeds],
+                                backgroundColor: ['#10b981', '#ef4444'],
+                                hoverBackgroundColor: ['#059669', '#dc2626'],
+                                borderWidth: 0,
+                                cutout: '74%'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    padding: 10,
+                                    callbacks: {
+                                        label: function (ctx) {
+                                            return ' ' + ctx.label + ': ' + ctx.parsed + ' beds';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // 3. Appointment Pipeline Bar Chart
+                const aptCanvas = document.getElementById('appointmentChart');
+                if (aptCanvas) {
+                    new Chart(aptCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Scheduled', 'Completed', 'Cancelled'],
+                            datasets: [{
+                                data: [scheduledApts, completedApts, cancelledApts],
+                                backgroundColor: ['#f59e0b', '#10b981', '#ef4444'],
+                                borderRadius: 6,
+                                barThickness: 34
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { color: theme.text, font: { family: 'Inter' } }
+                                },
+                                y: {
+                                    grid: { color: theme.grid },
+                                    ticks: { color: theme.text, font: { family: 'Inter' }, precision: 0 }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // 4. Ward Capacity Horizontal Bar Chart
+                const wardCanvas = document.getElementById('wardChart');
+                if (wardCanvas) {
+                    new Chart(wardCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: wardNames,
+                            datasets: [{
+                                axis: 'y',
+                                label: 'Bed Capacity',
+                                data: wardCapacities,
+                                backgroundColor: ['#3b82f6', '#8b5cf6', '#06b6d4', '#ec4899'],
+                                borderRadius: 6,
+                                barThickness: 22
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false }
+                            },
+                            scales: {
+                                x: {
+                                    grid: { color: theme.grid },
+                                    ticks: { color: theme.text, font: { family: 'Inter' }, precision: 0 }
+                                },
+                                y: {
+                                    grid: { display: false },
+                                    ticks: { color: theme.text, font: { family: 'Inter', weight: '600' } }
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+            /*]]>*/
+        </script>
+    </div>
+</div>
+</body>
+</html>

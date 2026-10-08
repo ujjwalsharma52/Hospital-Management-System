@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{layout :: layout(~{::content})}">
+    <div th:fragment="content">
+        <div class="page-header">
+            <div>
+                <h1><i class='bx bxs-flask mr-1'></i> Diagnostic Lab Report</h1>
+                <p class="text-muted" style="margin-top:4px;">Detailed clinical pathology &amp; diagnostic investigation sheet</p>
+            </div>
+            <div class="page-actions">
+                <button onclick="window.print()" class="btn btn-outline">
+                    <i class='bx bx-printer'></i> Print Report
+                </button>
+                <a th:href="@{/lab/edit/{id}(id=${report.id})}" class="btn btn-primary">
+                    <i class='bx bx-edit'></i> Edit Report
+                </a>
+                <a th:href="@{/lab}" class="btn btn-outline">
+                    <i class='bx bx-arrow-back'></i> Back to List
+                </a>
+            </div>
+        </div>
+
+        <div class="card" style="max-width: 900px; margin: 0 auto;">
+            <!-- Header section of the report -->
+            <div class="card-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+                <div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:24px;">🏥</span>
+                        <h2 style="font-size:1.3rem; margin:0;">MedCare Diagnostic Services</h2>
+                    </div>
+                    <p class="text-muted" style="font-size:12px; margin:4px 0 0 0;">Department of Laboratory Medicine &amp; Pathology</p>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:12px; color:var(--text-muted);">REPORT REF:</div>
+                    <div style="font-size:1.1rem; font-weight:700; color:var(--primary);" th:text="'LAB-' + ${report.id}">LAB-1</div>
+                    <div style="margin-top:6px;">
+                        <span th:if="${report.status == 'Completed'}" class="badge badge-available">
+                            <i class='bx bx-check-circle'></i> Completed
+                        </span>
+                        <span th:if="${report.status == 'In Progress'}" class="badge badge-maintenance">
+                            <i class='bx bx-time'></i> In Progress
+                        </span>
+                        <span th:if="${report.status == 'Pending'}" class="badge badge-pending">
+                            <i class='bx bx-hourglass'></i> Pending
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                <!-- Patient & Order Meta Grid -->
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:20px; padding:16px; background:var(--bg-glass); border:1px solid var(--border); border-radius:10px; margin-bottom:24px;">
+                    <div>
+                        <div class="text-muted" style="font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">Patient Information</div>
+                        <div style="font-size:1.1rem; font-weight:700; margin-top:4px;" th:text="${report.patient.fullName}">Patient Name</div>
+                        <div style="font-size:13px; color:var(--text-muted); margin-top:2px;">
+                            <span th:text="'ID: ' + ${report.patient.patientId}">PID-1001</span> | 
+                            <span th:text="${report.patient.gender}">Male</span>, 
+                            <span th:text="${report.patient.age} + ' yrs'">30 yrs</span>
+                        </div>
+                        <div style="font-size:13px; color:var(--text-muted);" th:text="'Phone: ' + ${report.patient.phone}">Phone</div>
+                    </div>
+                    <div>
+                        <div class="text-muted" style="font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">Prescribing Physician</div>
+                        <div style="font-size:1.1rem; font-weight:700; margin-top:4px;"
+                             th:text="${report.doctor != null ? 'Dr. ' + report.doctor.fullName : 'Hospital General Consultation'}">Doctor</div>
+                        <div style="font-size:13px; color:var(--text-muted); margin-top:2px;"
+                             th:text="${report.doctor != null ? report.doctor.specialization : 'OPD'}">Cardiology</div>
+                    </div>
+                    <div>
+                        <div class="text-muted" style="font-size:12px; text-transform:uppercase; letter-spacing:0.5px;">Date &amp; Pricing</div>
+                        <div style="font-size:13px; margin-top:4px;">
+                            <strong>Test Date:</strong>
+                            <span th:text="${report.testDate != null ? #temporals.format(report.testDate, 'dd MMM yyyy, HH:mm') : '—'}">Date</span>
+                        </div>
+                        <div style="font-size:13px; margin-top:2px;">
+                            <strong>Total Cost:</strong>
+                            <span style="color:var(--success); font-weight:700;" th:text="'₹' + ${#numbers.formatDecimal(report.cost, 1, 2)}">₹500.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test Details -->
+                <div style="margin-bottom:24px;">
+                    <h3 style="font-size:1rem; border-bottom:1px solid var(--border); padding-bottom:8px; margin-bottom:16px;">
+                        Investigation Details
+                    </h3>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <div>
+                            <div style="font-size:1.15rem; font-weight:700;" th:text="${report.testName}">Complete Blood Count</div>
+                            <span class="badge badge-occupied" th:text="${report.testCategory}">Blood Test</span>
+                        </div>
+                    </div>
+
+                    <!-- Findings / Result Box -->
+                    <div style="margin-top:16px;">
+                        <label class="form-label" style="font-size:12px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted);">
+                            Test Findings &amp; Observations
+                        </label>
+                        <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:8px; padding:16px; min-height:80px; font-family:var(--font-mono, monospace); font-size:14px; white-space:pre-wrap;"
+                             th:text="${report.result != null && !#strings.isEmpty(report.result) ? report.result : 'Result not yet uploaded or pending analysis.'}">
+                            Result observations here...
+                        </div>
+                    </div>
+
+                    <!-- Normal Range -->
+                    <div style="margin-top:16px;" th:if="${report.normalRange != null && !#strings.isEmpty(report.normalRange)}">
+                        <label class="form-label" style="font-size:12px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted);">
+                            Normal Biological Reference Range
+                        </label>
+                        <div style="background:var(--bg-glass); border:1px solid var(--border); border-radius:8px; padding:12px 16px; font-size:13px;"
+                             th:text="${report.normalRange}">
+                            Normal reference range
+                        </div>
+                    </div>
+
+                    <!-- Remarks -->
+                    <div style="margin-top:16px;" th:if="${report.remarks != null && !#strings.isEmpty(report.remarks)}">
+                        <label class="form-label" style="font-size:12px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted);">
+                            Clinical Remarks &amp; Interpretation
+                        </label>
+                        <div style="background:var(--bg-glass); border:1px solid var(--border); border-radius:8px; padding:12px 16px; font-size:13px; color:var(--text-secondary);"
+                             th:text="${report.remarks}">
+                            Remarks
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Sign-off -->
+                <div style="margin-top:40px; padding-top:20px; border-top:1px dashed var(--border); display:flex; justify-content:space-between; align-items:flex-end;">
+                    <div style="font-size:11px; color:var(--text-muted);">
+                        * This is an electronically generated diagnostic laboratory report.
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="height:35px; border-bottom:1px solid var(--text-muted); width:160px; margin-bottom:6px;"></div>
+                        <div style="font-size:12px; font-weight:600;">Authorized Signatory</div>
+                        <div style="font-size:11px; color:var(--text-muted);">MedCare Pathology Lab</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

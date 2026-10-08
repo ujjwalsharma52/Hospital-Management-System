@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{layout :: layout(~{::content})}">
+    <div th:fragment="content">
+        <div class="page-header">
+            <div>
+                <h1><i class='bx bxs-flask mr-1'></i> Laboratory & Diagnostics</h1>
+                <p class="text-muted" style="margin-top:4px;">Manage medical lab tests, diagnostic reports, and patient investigations</p>
+            </div>
+            <div class="page-actions">
+                <a th:href="@{/lab/add}" class="btn btn-primary">
+                    <i class='bx bx-plus'></i> New Lab Request
+                </a>
+            </div>
+        </div>
+
+        <!-- Filter tabs -->
+        <div class="card mb-3" style="padding:12px 20px;">
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <span class="text-muted" style="font-size:13px; font-weight:600;"><i class='bx bx-filter-alt'></i> Status:</span>
+                <a th:href="@{/lab}" class="btn btn-sm" th:classappend="${selectedStatus == null ? 'btn-primary' : 'btn-outline'}">All Reports</a>
+                <a th:href="@{/lab(status='Pending')}" class="btn btn-sm" th:classappend="${selectedStatus == 'Pending' ? 'btn-primary' : 'btn-outline'}">Pending</a>
+                <a th:href="@{/lab(status='In Progress')}" class="btn btn-sm" th:classappend="${selectedStatus == 'In Progress' ? 'btn-primary' : 'btn-outline'}">In Progress</a>
+                <a th:href="@{/lab(status='Completed')}" class="btn btn-sm" th:classappend="${selectedStatus == 'Completed' ? 'btn-primary' : 'btn-outline'}">Completed</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body" style="padding:0;">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Patient</th>
+                                <th>Test Name</th>
+                                <th>Category</th>
+                                <th>Referring Doctor</th>
+                                <th>Cost (₹)</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="r, stat : ${reports}">
+                                <td th:text="${stat.index + 1}">1</td>
+                                <td>
+                                    <div style="font-weight:600;" th:text="${r.patient.fullName}">Patient Name</div>
+                                    <small class="text-muted" th:text="${r.patient.patientId}">PID-1001</small>
+                                </td>
+                                <td>
+                                    <span style="font-weight:600;" th:text="${r.testName}">Complete Blood Count</span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-occupied" th:text="${r.testCategory}">Blood Test</span>
+                                </td>
+                                <td>
+                                    <span th:if="${r.doctor != null}" th:text="'Dr. ' + ${r.doctor.fullName}">Dr. Sharma</span>
+                                    <span th:if="${r.doctor == null}" class="text-muted">—</span>
+                                </td>
+                                <td style="font-weight:600;" th:text="${#numbers.formatDecimal(r.cost, 1, 2)}">500.00</td>
+                                <td>
+                                    <span th:if="${r.status == 'Completed'}" class="badge badge-available">
+                                        <i class='bx bx-check-circle'></i> Completed
+                                    </span>
+                                    <span th:if="${r.status == 'In Progress'}" class="badge badge-maintenance">
+                                        <i class='bx bx-time'></i> In Progress
+                                    </span>
+                                    <span th:if="${r.status == 'Pending'}" class="badge badge-pending">
+                                        <i class='bx bx-hourglass'></i> Pending
+                                    </span>
+                                </td>
+                                <td>
+                                    <small class="text-muted" th:if="${r.testDate != null}" th:text="${#temporals.format(r.testDate, 'dd MMM yyyy, HH:mm')}">Date</small>
+                                    <small class="text-muted" th:if="${r.testDate == null}">—</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a th:href="@{/lab/view/{id}(id=${r.id})}" class="btn btn-sm btn-outline" title="View Report">
+                                            <i class='bx bx-show'></i>
+                                        </a>
+                                        <a th:href="@{/lab/edit/{id}(id=${r.id})}" class="btn btn-sm btn-primary" title="Edit / Update Result">
+                                            <i class='bx bx-edit'></i>
+                                        </a>
+                                        <a th:href="@{/lab/delete/{id}(id=${r.id})}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this lab report?')" title="Delete">
+                                            <i class='bx bx-trash'></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(reports)}">
+                                <td colspan="9">
+                                    <div class="empty-state">
+                                        <div class="empty-icon">🧪</div>
+                                        <h3>No lab reports found</h3>
+                                        <p class="text-muted">Create a new diagnostic lab order to get started</p>
+                                        <a th:href="@{/lab/add}" class="btn btn-primary mt-2">
+                                            <i class='bx bx-plus'></i> New Lab Request
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

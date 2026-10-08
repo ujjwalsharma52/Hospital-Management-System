@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{layout :: layout(~{::content})}">
+    <div th:fragment="content">
+        <div class="page-header">
+            <h1><i class='bx bxs-user-detail mr-1'></i> Patient Details</h1>
+            <div class="page-actions">
+                <a th:href="@{/patients/edit/{id}(id=${patient.id})}" class="btn btn-primary"><i class='bx bx-edit'></i> Edit</a>
+                <a th:href="@{/patients}" class="btn btn-outline"><i class='bx bx-arrow-back'></i> Back</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 th:text="${patient.fullName}">Patient Name</h3>
+                <span class="badge" th:classappend="${patient.status == 'Active'} ? 'badge-active' : 'badge-inactive'" th:text="${patient.status}">Active</span>
+            </div>
+            <div class="card-body">
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <div class="detail-label">Full Name</div>
+                        <div class="detail-value" th:text="${patient.fullName}">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Date of Birth</div>
+                        <div class="detail-value" th:text="${patient.dateOfBirth}">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Gender</div>
+                        <div class="detail-value" th:text="${patient.gender}">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Phone</div>
+                        <div class="detail-value" th:text="${patient.phone ?: 'N/A'}">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Email</div>
+                        <div class="detail-value" th:text="${patient.email ?: 'N/A'}">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Blood Group</div>
+                        <div class="detail-value" th:text="${patient.bloodGroup ?: 'N/A'}">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Address</div>
+                        <div class="detail-value" th:text="${patient.address ?: 'N/A'}">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Allergies</div>
+                        <div class="detail-value" th:text="${patient.allergies ?: 'None'}">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Medical History</div>
+                        <div class="detail-value" th:text="${patient.medicalHistory ?: 'None'}">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Emergency Contact</div>
+                        <div class="detail-value" th:text="${(patient.emergencyContactName ?: 'N/A') + ' - ' + (patient.emergencyContactPhone ?: '')}">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Registered At</div>
+                        <div class="detail-value" th:text="${patient.registeredAt}">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

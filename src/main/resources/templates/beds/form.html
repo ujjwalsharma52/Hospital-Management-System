@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{layout :: layout(~{::content})}">
+    <div th:fragment="content">
+        <div class="page-header">
+            <div>
+                <h1 th:text="${bed.id != null ? 'Edit Bed Details' : 'Add New Bed'}">Add Bed</h1>
+                <p class="text-muted" style="margin-top:4px;">Assign bed identification, ward location, and inpatient occupancy</p>
+            </div>
+            <div class="page-actions">
+                <a th:href="@{/beds}" class="btn btn-outline">
+                    <i class='bx bx-arrow-back'></i> Back to Beds
+                </a>
+            </div>
+        </div>
+
+        <div class="card" style="max-width: 800px; margin: 0 auto;">
+            <div class="card-header">
+                <h2 style="font-size:1.1rem; margin:0;">
+                    <i class='bx bxs-bed mr-1 text-primary'></i> Bed Specification
+                </h2>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/beds/save}" method="post">
+                    <input type="hidden" name="id" th:value="${bed.id}">
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="bedNumber">Bed Code / Number <span class="text-red">*</span></label>
+                            <input type="text" id="bedNumber" name="bedNumber" th:value="${bed.bedNumber}"
+                                   class="form-control" placeholder="e.g. ICU-01, GEN-104" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="wardSelect">Assigned Ward <span class="text-red">*</span></label>
+                            <select id="wardSelect" name="wardId" class="form-control" required>
+                                <option value="">-- Select Ward --</option>
+                                <option th:each="w : ${wards}"
+                                        th:value="${w.id}"
+                                        th:text="${w.wardName} + ' (' + ${w.wardType} + ' - Floor ' + ${w.floorNumber} + ')'"
+                                        th:selected="${bed.ward != null && bed.ward.id == w.id}">
+                                    ICU Ward (ICU - Floor 2)
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="dailyRate">Daily Charge (₹) <span class="text-red">*</span></label>
+                            <input type="number" step="0.01" id="dailyRate" name="dailyRate"
+                                   th:value="${bed.dailyRate != null ? bed.dailyRate : 0.0}"
+                                   class="form-control" placeholder="1500.00" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="status">Operational Status <span class="text-red">*</span></label>
+                            <select id="status" name="status" class="form-control" required>
+                                <option value="Available" th:selected="${bed.status == 'Available'}">Available</option>
+                                <option value="Occupied" th:selected="${bed.status == 'Occupied'}">Occupied</option>
+                                <option value="Maintenance" th:selected="${bed.status == 'Maintenance'}">Maintenance</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="patientSelect">Admit / Assign Patient (Optional)</label>
+                        <select id="patientSelect" name="patientId" class="form-control">
+                            <option value="">-- No Patient Assigned (Vacant) --</option>
+                            <option th:each="p : ${patients}"
+                                    th:value="${p.id}"
+                                    th:text="${p.fullName} + ' (' + ${p.patientId} + ') - Age ' + ${p.age}"
+                                    th:selected="${bed.patient != null && bed.patient.id == p.id}">
+                                Jane Doe (PID-1002) - Age 28
+                            </option>
+                        </select>
+                        <small class="text-muted" style="display:block; margin-top:4px;">
+                            Selecting a patient will automatically designate this bed as Occupied.
+                        </small>
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:24px;">
+                        <a th:href="@{/beds}" class="btn btn-outline">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class='bx bx-save'></i> Save Bed
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

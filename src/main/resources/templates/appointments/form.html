@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{layout :: layout(~{::content})}">
+    <div th:fragment="content">
+        <div class="page-header">
+            <h1><i class='bx bxs-calendar-check mr-1'></i> <span th:text="${appointment.id != null} ? 'Edit Appointment' : 'Book New Appointment'">New Appointment</span></h1>
+            <div class="page-actions"><a th:href="@{/appointments}" class="btn btn-outline"><i class='bx bx-arrow-back'></i> Back</a></div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <form th:action="@{/appointments/save}" th:object="${appointment}" method="post">
+                    <input type="hidden" th:field="*{id}">
+                    <div class="form-row">
+                        <div class="form-group"><label>Patient *</label>
+                            <select name="patientId" class="form-control" required>
+                                <option value="">Select Patient</option>
+                                <option th:each="p : ${patients}" th:value="${p.id}" th:text="${p.fullName}" th:selected="${appointment.patient != null and appointment.patient.id == p.id}">Patient</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Doctor *</label>
+                            <select name="doctorId" class="form-control" required>
+                                <option value="">Select Doctor</option>
+                                <option th:each="d : ${doctors}" th:value="${d.id}" th:text="${d.fullName + ' (' + d.specialization + ')'}" th:selected="${appointment.doctor != null and appointment.doctor.id == d.id}">Doctor</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Date *</label><input type="date" th:field="*{appointmentDate}" class="form-control" required></div>
+                        <div class="form-group"><label>Time *</label><input type="time" th:field="*{appointmentTime}" class="form-control" required></div>
+                        <div class="form-group"><label>Status</label>
+                            <select th:field="*{status}" class="form-control">
+                                <option value="Scheduled">Scheduled</option><option value="In Progress">In Progress</option>
+                                <option value="Completed">Completed</option><option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group"><label>Reason</label><textarea th:field="*{reason}" class="form-control" rows="2" placeholder="Reason for visit"></textarea></div>
+                    <div class="form-group"><label>Notes</label><textarea th:field="*{notes}" class="form-control" rows="2" placeholder="Additional notes"></textarea></div>
+                    <div style="display:flex; gap:12px;">
+                        <button type="submit" class="btn btn-primary"><i class='bx bx-save'></i> <span th:text="${appointment.id != null} ? 'Update' : 'Book Appointment'">Save</span></button>
+                        <a th:href="@{/appointments}" class="btn btn-outline">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

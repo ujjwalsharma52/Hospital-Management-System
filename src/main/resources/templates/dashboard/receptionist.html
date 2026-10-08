@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{layout :: head}"></head>
+<body>
+<div th:replace="~{layout :: layout(~{::content})}">
+    <div th:fragment="content">
+
+        <!-- Admin View Switcher (Only visible to ADMIN) -->
+        <div sec:authorize="hasRole('ADMIN')" class="dashboard-switcher">
+            <a th:href="@{/dashboard/admin}" class="switcher-tab">
+                <i class='bx bxs-shield'></i> Admin View
+            </a>
+            <a th:href="@{/dashboard/doctor}" class="switcher-tab">
+                <i class='bx bxs-user-badge'></i> Doctor View
+            </a>
+            <a th:href="@{/dashboard/receptionist}" class="switcher-tab active">
+                <i class='bx bxs-id-card'></i> Receptionist View
+            </a>
+        </div>
+
+        <!-- Receptionist Welcome Hero Banner -->
+        <div class="role-hero-card">
+            <div class="role-hero-content">
+                <div class="role-hero-avatar" style="background: linear-gradient(135deg, #10b981, #06b6d4);">
+                    <i class='bx bxs-id-card'></i>
+                </div>
+                <div class="role-hero-info">
+                    <h2>
+                        <span>Front Desk &amp; Reception Portal</span>
+                        <span class="badge badge-active" style="font-size:12px;">
+                            <span class="status-pulse"></span> Desk Active
+                        </span>
+                    </h2>
+                    <p class="text-secondary" style="font-size:14px; margin:0;">
+                        Patient Registration, OPD Scheduling &amp; Admission Coordination
+                    </p>
+                    <div class="role-hero-meta">
+                        <span class="hero-pill">
+                            <i class='bx bx-calendar'></i>
+                            <span th:text="${#temporals.format(#temporals.createNow(), 'EEEE, dd MMMM yyyy')}">Today</span>
+                        </span>
+                        <span class="hero-pill">
+                            <i class='bx bx-bed'></i>
+                            <span th:text="${availableBeds} + ' Beds Available for Admission'">10 Beds Available</span>
+                        </span>
+                        <span class="hero-pill">
+                            <i class='bx bx-user-check'></i>
+                            <span th:text="${activePatients} + ' Active Patients'">Active Patients</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <a th:href="@{/patients/add}" class="btn btn-primary">
+                    <i class='bx bx-user-plus'></i> Register Patient
+                </a>
+                <a th:href="@{/appointments/add}" class="btn btn-success">
+                    <i class='bx bx-calendar-plus'></i> Book OPD
+                </a>
+            </div>
+        </div>
+
+        <!-- Receptionist KPI Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card orange">
+                <div class="stat-icon"><i class='bx bxs-calendar-check'></i></div>
+                <div class="stat-value" th:text="${todaysAppointments}">0</div>
+                <div class="stat-label">Today's OPD Appointments</div>
+                <div class="stat-change">
+                    <i class='bx bx-time'></i>
+                    <span th:text="${scheduledAppointments} + ' scheduled'">Scheduled</span>
+                </div>
+            </div>
+
+            <div class="stat-card cyan">
+                <div class="stat-icon"><i class='bx bxs-bed'></i></div>
+                <div class="stat-value" th:text="${availableBeds}">0</div>
+                <div class="stat-label">Available Hospital Beds</div>
+                <div class="stat-change">
+                    <span th:text="${occupiedBeds} + '/' + ${totalBeds} + ' currently occupied'" class="text-blue">Occupied</span>
+                </div>
+            </div>
+
+            <div class="stat-card purple">
+                <div class="stat-icon"><i class='bx bxs-receipt'></i></div>
+                <div class="stat-value" th:text="${pendingBills}">0</div>
+                <div class="stat-label">Pending Invoices / Unpaid</div>
+                <div class="stat-change">
+                    <i class='bx bx-wallet'></i>
+                    <span>Counter collection pending</span>
+                </div>
+            </div>
+
+            <div class="stat-card blue">
+                <div class="stat-icon"><i class='bx bxs-user-detail'></i></div>
+                <div class="stat-value" th:text="${totalPatients}">0</div>
+                <div class="stat-label">Registered Patients</div>
+                <div class="stat-change positive">
+                    <i class='bx bx-plus'></i>
+                    <span>Total registered in system</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Front Desk Grid -->
+        <div style="display:grid; grid-template-columns:1.3fr 0.7fr; gap:24px;">
+
+            <!-- Left: Today's OPD Appointments / Check-in Queue -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class='bx bxs-calendar-check mr-1 text-orange'></i> Today's OPD Appointments Queue</h3>
+                    <a th:href="@{/appointments/add}" class="btn btn-sm btn-primary">
+                        <i class='bx bx-plus'></i> New Appointment
+                    </a>
+                </div>
+                <div class="card-body" style="padding:0;">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Patient</th>
+                                    <th>Doctor</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="apt : ${todaysAppointmentsList}">
+                                    <td>
+                                        <span class="badge badge-pending" style="font-size:12px;">
+                                            <i class='bx bx-time mr-1'></i>
+                                            <span th:text="${apt.appointmentTime}">10:00</span>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <strong th:text="${apt.patient.fullName}">Patient Name</strong>
+                                        <div class="text-muted" style="font-size:11px;" th:text="${apt.patient.phone}">9876543210</div>
+                                    </td>
+                                    <td>
+                                        <span th:text="${apt.doctor.fullName}">Doctor Name</span>
+                                        <div class="text-muted" style="font-size:11px;" th:text="${apt.doctor.specialization}">Specialty</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge"
+                                              th:classappend="${apt.status == 'Scheduled'} ? 'badge-scheduled' :
+                                                              (${apt.status == 'Completed'} ? 'badge-completed' :
+                                                              (${apt.status == 'Cancelled'} ? 'badge-cancelled' : 'badge-in-progress'))"
+                                              th:text="${apt.status}">Status</span>
+                                    </td>
+                                    <td>
+                                        <div style="display:flex; gap:6px;">
+                                            <a th:if="${apt.status == 'Scheduled'}"
+                                               th:href="@{'/appointments/complete/' + ${apt.id} + '?redirect=/dashboard'}"
+                                               class="btn btn-sm btn-success" title="Mark Patient Checked-In / Done">
+                                                <i class='bx bx-check'></i>
+                                            </a>
+                                            <a th:if="${apt.status == 'Scheduled'}"
+                                               th:href="@{'/appointments/cancel/' + ${apt.id} + '?redirect=/dashboard'}"
+                                               class="btn btn-sm btn-danger" title="Cancel Appointment">
+                                                <i class='bx bx-x'></i>
+                                            </a>
+                                            <a th:href="@{'/billing/add?patientId=' + ${apt.patient.id}}"
+                                               class="btn btn-sm btn-warning" title="Create Bill / Invoice">
+                                                <i class='bx bx-receipt'></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(todaysAppointmentsList)}">
+                                    <td colspan="5" class="text-center text-muted" style="padding:35px;">
+                                        <i class='bx bx-calendar-event' style="font-size:36px; display:block; margin-bottom:8px; opacity:0.5;"></i>
+                                        No appointments scheduled for today.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Quick Actions & Live Ward Bed Status -->
+            <div style="display:flex; flex-direction:column; gap:24px;">
+
+                <!-- Quick Actions Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class='bx bxs-zap mr-1 text-yellow'></i> Front Desk Quick Actions</h3>
+                    </div>
+                    <div class="card-body" style="display:flex; flex-direction:column; gap:10px;">
+                        <a th:href="@{/patients/add}" class="btn btn-primary" style="justify-content:flex-start;">
+                            <i class='bx bx-user-plus'></i> Register Walk-in Patient
+                        </a>
+                        <a th:href="@{/appointments/add}" class="btn btn-success" style="justify-content:flex-start;">
+                            <i class='bx bx-calendar-plus'></i> Book Doctor Appointment
+                        </a>
+                        <a th:href="@{/beds}" class="btn btn-outline" style="justify-content:flex-start;">
+                            <i class='bx bx-bed'></i> Bed Admission / Ward Transfer
+                        </a>
+                        <a th:href="@{/billing/add}" class="btn btn-warning" style="justify-content:flex-start;">
+                            <i class='bx bx-receipt'></i> Generate Invoice / Bill
+                        </a>
+                        <a th:href="@{/patients}" class="btn btn-outline" style="justify-content:flex-start;">
+                            <i class='bx bx-search'></i> Patient Lookup &amp; Records
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Bed Occupancy by Ward -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class='bx bxs-bed mr-1 text-cyan'></i> Ward Availability</h3>
+                        <a th:href="@{/beds}" class="btn btn-sm btn-outline">Manage</a>
+                    </div>
+                    <div class="card-body" style="padding:16px;">
+                        <div th:each="ward : ${allWards}" class="ward-capacity-card">
+                            <div class="ward-capacity-header">
+                                <span class="ward-capacity-title" th:text="${ward.wardName}">General Ward</span>
+                                <span class="ward-capacity-count" th:text="'Floor ' + ${ward.floorNumber} + ' • ' + ${ward.totalBeds} + ' beds'">Floor 1</span>
+                            </div>
+                            <div class="ward-progress-bar">
+                                <div class="ward-progress-fill" style="background:var(--accent-cyan); width:65%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Section 2: Doctor On-Duty Roster & Scheduling Guide -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3><i class='bx bxs-user-badge mr-1 text-green'></i> Doctor On-Duty Roster &amp; Consulting Schedule</h3>
+                <span class="text-muted" style="font-size:13px;">Quick guide for patient booking &amp; inquiries</span>
+            </div>
+            <div class="card-body" style="padding:0;">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Doctor</th>
+                                <th>Specialization</th>
+                                <th>Visiting Days</th>
+                                <th>Consulting Hours</th>
+                                <th>Fee</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="doc : ${allDoctors}">
+                                <td>
+                                    <strong th:text="${doc.fullName}">Dr. Rajesh Sharma</strong>
+                                    <div class="text-muted" style="font-size:11px;" th:text="${doc.qualification}">MBBS, MD</div>
+                                </td>
+                                <td>
+                                    <span class="badge badge-active" th:text="${doc.specialization}">Cardiology</span>
+                                </td>
+                                <td th:text="${doc.availableDays}">Mon-Fri</td>
+                                <td>
+                                    <span class="text-secondary" th:text="${doc.availableTimeStart} + ' - ' + ${doc.availableTimeEnd}">09:00 - 17:00</span>
+                                </td>
+                                <td>
+                                    <strong class="text-yellow">₹<span th:text="${#numbers.formatDecimal(doc.consultationFee, 0, 0)}">800</span></strong>
+                                </td>
+                                <td>
+                                    <span class="badge badge-active">
+                                        <span class="status-pulse"></span> Available
+                                    </span>
+                                </td>
+                                <td>
+                                    <a th:href="@{'/appointments/add?doctorId=' + ${doc.id}}" class="btn btn-sm btn-primary">
+                                        <i class='bx bx-calendar-plus'></i> Book Appointment
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Recent Patient Registrations -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3><i class='bx bxs-user-plus mr-1 text-blue'></i> Recent Patient Registrations</h3>
+                <a th:href="@{/patients}" class="btn btn-sm btn-outline">View All Patients</a>
+            </div>
+            <div class="card-body" style="padding:0;">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Patient Name</th>
+                                <th>Phone</th>
+                                <th>Gender</th>
+                                <th>Blood Group</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="patient : ${recentPatients}">
+                                <td>
+                                    <strong th:text="${patient.fullName}">Patient Name</strong>
+                                    <div class="text-muted" style="font-size:11px;" th:text="${patient.email ?: 'No email'}">email</div>
+                                </td>
+                                <td th:text="${patient.phone}">9876543210</td>
+                                <td th:text="${patient.gender}">Male</td>
+                                <td>
+                                    <span class="badge badge-pending" th:text="${patient.bloodGroup ?: 'N/A'}">O+</span>
+                                </td>
+                                <td>
+                                    <span class="badge"
+                                          th:classappend="${patient.status == 'Active'} ? 'badge-active' : 'badge-inactive'"
+                                          th:text="${patient.status}">Active</span>
+                                </td>
+                                <td>
+                                    <div style="display:flex; gap:6px;">
+                                        <a th:href="@{'/appointments/add?patientId=' + ${patient.id}}" class="btn btn-sm btn-success" title="Book Appointment">
+                                            <i class='bx bx-calendar-plus'></i> Book
+                                        </a>
+                                        <a th:href="@{'/patients/view/' + ${patient.id}}" class="btn btn-sm btn-outline" title="View Profile">
+                                            <i class='bx bx-show'></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:replace="~{layout :: layout(~{::content})}">
+    <div th:fragment="content">
+        <div class="page-header">
+            <h1><i class='bx bxs-user-badge mr-1'></i> Doctor Details</h1>
+            <div class="page-actions">
+                <a th:href="@{/doctors/edit/{id}(id=${doctor.id})}" class="btn btn-primary"><i class='bx bx-edit'></i> Edit</a>
+                <a th:href="@{/doctors}" class="btn btn-outline"><i class='bx bx-arrow-back'></i> Back</a>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h3 th:text="${doctor.fullName}">Doctor Name</h3>
+                <span class="badge" th:classappend="${doctor.status == 'Active'} ? 'badge-active' : 'badge-inactive'" th:text="${doctor.status}">Active</span>
+            </div>
+            <div class="card-body">
+                <div class="detail-grid">
+                    <div class="detail-item"><div class="detail-label">Specialization</div><div class="detail-value" th:text="${doctor.specialization}">-</div></div>
+                    <div class="detail-item"><div class="detail-label">Qualification</div><div class="detail-value" th:text="${doctor.qualification ?: 'N/A'}">-</div></div>
+                    <div class="detail-item"><div class="detail-label">Gender</div><div class="detail-value" th:text="${doctor.gender}">-</div></div>
+                    <div class="detail-item"><div class="detail-label">Phone</div><div class="detail-value" th:text="${doctor.phone ?: 'N/A'}">-</div></div>
+                    <div class="detail-item"><div class="detail-label">Email</div><div class="detail-value" th:text="${doctor.email ?: 'N/A'}">-</div></div>
+                    <div class="detail-item"><div class="detail-label">Consultation Fee</div><div class="detail-value">₹<span th:text="${doctor.consultationFee}">500</span></div></div>
+                    <div class="detail-item"><div class="detail-label">Available Days</div><div class="detail-value" th:text="${doctor.availableDays ?: 'N/A'}">-</div></div>
+                    <div class="detail-item"><div class="detail-label">Timing</div><div class="detail-value" th:text="${(doctor.availableTimeStart ?: '?') + ' - ' + (doctor.availableTimeEnd ?: '?')}">-</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

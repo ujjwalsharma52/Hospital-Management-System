@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head}"></head>
+<body>
+<div th:replace="~{layout :: layout(~{::content})}">
+    <div th:fragment="content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div>
+                <h1><i class='bx bx-edit mr-1'></i> Write Prescription (Rx)</h1>
+                <p class="text-muted" style="margin-top:4px;">Draft patient e-prescription, medication dosage, and clinical care plan</p>
+            </div>
+            <div class="page-actions">
+                <a th:href="@{/prescriptions}" class="btn btn-outline">
+                    <i class='bx bx-arrow-back'></i> Back to Prescriptions
+                </a>
+            </div>
+        </div>
+
+        <form th:action="@{/prescriptions/save}" method="post" id="rxForm">
+            <!-- Prescription Meta Card -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3><i class='bx bx-user-pin mr-1'></i> Patient &amp; Doctor Information</h3>
+                </div>
+                <div class="card-body">
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:18px;">
+                        <div class="form-group">
+                            <label for="patientId" style="font-weight:600;">Patient <span class="text-red">*</span></label>
+                            <select id="patientId" name="patientId" class="form-control" required>
+                                <option value="">-- Select Patient --</option>
+                                <option th:each="p : ${patients}"
+                                        th:value="${p.id}"
+                                        th:text="${p.fullName} + ' (PID-' + ${p.id} + ' | ' + ${p.gender} + ', ' + ${p.age} + 'y)'"
+                                        th:selected="${preSelectedPatientId != null and preSelectedPatientId == p.id}">
+                                    Patient Name
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="doctorId" style="font-weight:600;">Prescribing Doctor <span class="text-red">*</span></label>
+                            <select id="doctorId" name="doctorId" class="form-control" required>
+                                <option value="">-- Select Doctor --</option>
+                                <option th:each="doc : ${doctors}"
+                                        th:value="${doc.id}"
+                                        th:text="${doc.fullName} + ' (' + ${doc.specialization} + ')'"
+                                        th:selected="${preSelectedDoctorId != null and preSelectedDoctorId == doc.id}">
+                                    Doctor Name
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="prescriptionDate" style="font-weight:600;">Prescription Date <span class="text-red">*</span></label>
+                            <input type="date" id="prescriptionDate" name="prescriptionDate" th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd')}" class="form-control" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="followUpDate" style="font-weight:600;">Recommended Follow-Up Date</label>
+                            <input type="date" id="followUpDate" name="followUpDate" class="form-control">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clinical Assessment Card -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3><i class='bx bx-pulse mr-1'></i> Clinical Diagnosis &amp; Vitals</h3>
+                </div>
+                <div class="card-body">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:18px;">
+                        <div class="form-group">
+                            <label for="diagnosis" style="font-weight:600;">Primary Diagnosis <span class="text-red">*</span></label>
+                            <input type="text" id="diagnosis" name="diagnosis" class="form-control" placeholder="e.g. Acute Bronchitis, Type 2 Diabetes, Hypertension" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="vitals" style="font-weight:600;">Recorded Vitals</label>
+                            <input type="text" id="vitals" name="vitals" class="form-control" placeholder="e.g. BP: 120/80 mmHg | Pulse: 76 bpm | SpO2: 98% | Temp: 98.6°F">
+                        </div>
+                    </div>
+
+                    <div class="form-group mt-2">
+                        <label for="symptoms" style="font-weight:600;">Chief Complaints &amp; Symptoms</label>
+                        <input type="text" id="symptoms" name="symptoms" class="form-control" placeholder="e.g. Dry cough, mild fever for 3 days, headache and sore throat">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prescribed Medications Card (Dynamic Drug List) -->
+            <div class="card mb-3">
+                <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <h3 style="margin:0;"><i class='bx bxs-capsule mr-1'></i> Medications &amp; Dosage Schedule (℞)</h3>
+                        <small class="text-muted">Select medicine from hospital inventory or enter manually</small>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="addMedicationRow()">
+                        <i class='bx bx-plus'></i> Add Medicine
+                    </button>
+                </div>
+                <div class="card-body" style="padding:0;">
+                    <div class="table-container">
+                        <table id="medicationsTable">
+                            <thead>
+                                <tr>
+                                    <th style="min-width:200px;">Medicine Name</th>
+                                    <th style="min-width:120px;">Dosage</th>
+                                    <th style="min-width:140px;">Frequency</th>
+                                    <th style="min-width:110px;">Timing</th>
+                                    <th style="min-width:110px;">Duration</th>
+                                    <th style="min-width:90px;">Total Qty</th>
+                                    <th style="min-width:180px;">Special Instructions</th>
+                                    <th style="width:50px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="medicationRows">
+                                <!-- First default row -->
+                                <tr class="med-row">
+                                    <td>
+                                        <input type="text" name="medName" class="form-control form-control-sm med-input" list="medList" placeholder="e.g. Paracetamol 650mg" required onchange="onMedSelect(this)">
+                                        <input type="hidden" name="medId" class="med-id-input" value="0">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="dosage" class="form-control form-control-sm" placeholder="1 Tablet" value="1 Tablet">
+                                    </td>
+                                    <td>
+                                        <select name="frequency" class="form-control form-control-sm">
+                                            <option value="1-0-1 (Morning & Night)">1-0-1 (Morning &amp; Night)</option>
+                                            <option value="1-1-1 (Thrice daily)">1-1-1 (Thrice daily)</option>
+                                            <option value="1-0-0 (Morning only)">1-0-0 (Morning only)</option>
+                                            <option value="0-0-1 (Night only)">0-0-1 (Night only)</option>
+                                            <option value="1-0-1-1 (Four times daily)">1-0-1-1 (4 times daily)</option>
+                                            <option value="SOS (As needed)">SOS (As needed)</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select name="timing" class="form-control form-control-sm">
+                                            <option value="After Food">After Food</option>
+                                            <option value="Before Food">Before Food</option>
+                                            <option value="With Water">With Water</option>
+                                            <option value="At Bedtime">At Bedtime</option>
+                                            <option value="Empty Stomach">Empty Stomach</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" name="duration" class="form-control form-control-sm" placeholder="5 Days" value="5 Days">
+                                    </td>
+                                    <td>
+                                        <input type="number" name="quantity" class="form-control form-control-sm" placeholder="10" value="10" min="1">
+                                    </td>
+                                    <td>
+                                        <input type="text" name="instructions" class="form-control form-control-sm" placeholder="Take with warm water">
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-outline text-red" onclick="removeMedicationRow(this)" title="Remove row">
+                                            <i class='bx bx-x'></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- General Clinical Advice Card -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3><i class='bx bx-clipboard mr-1'></i> General Advice &amp; Lifestyle Precautions</h3>
+                </div>
+                <div class="card-body">
+                    <textarea name="advice" class="form-control" rows="3" placeholder="e.g. Adequate hydration (3L water daily). Bed rest for 3 days. Avoid cold beverages and oily foods. Review if fever persists over 101°F."></textarea>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div style="display:flex; justify-content:flex-end; gap:12px; margin-bottom:40px;">
+                <a th:href="@{/prescriptions}" class="btn btn-outline">Cancel</a>
+                <button type="submit" class="btn btn-primary" style="padding:10px 24px; font-weight:600;">
+                    <i class='bx bx-check-circle'></i> Save &amp; Generate Rx Slip
+                </button>
+            </div>
+        </form>
+
+        <!-- Datalist for fast medicine autocomplete from inventory -->
+        <datalist id="medList">
+            <option th:each="m : ${medicines}"
+                    th:value="${m.name}"
+                    th:data-id="${m.id}"
+                    th:data-category="${m.category}"
+                    th:data-price="${m.price}"
+                    th:text="${m.name} + ' (' + ${m.category} + ' - Stock: ' + ${m.stockQuantity} + ')'">
+            </option>
+        </datalist>
+
+        <script>
+            function onMedSelect(inputElem) {
+                const val = inputElem.value;
+                const options = document.querySelectorAll('#medList option');
+                let foundId = 0;
+                for (let opt of options) {
+                    if (opt.value.toLowerCase() === val.toLowerCase()) {
+                        foundId = opt.getAttribute('data-id');
+                        break;
+                    }
+                }
+                const row = inputElem.closest('tr');
+                if (row) {
+                    const idInput = row.querySelector('.med-id-input');
+                    if (idInput) idInput.value = foundId;
+                }
+            }
+
+            function addMedicationRow() {
+                const tbody = document.getElementById('medicationRows');
+                const tr = document.createElement('tr');
+                tr.className = 'med-row';
+                tr.innerHTML = `
+                    <td>
+                        <input type="text" name="medName" class="form-control form-control-sm med-input" list="medList" placeholder="e.g. Amoxicillin 500mg" required onchange="onMedSelect(this)">
+                        <input type="hidden" name="medId" class="med-id-input" value="0">
+                    </td>
+                    <td>
+                        <input type="text" name="dosage" class="form-control form-control-sm" placeholder="1 Capsule" value="1 Tablet">
+                    </td>
+                    <td>
+                        <select name="frequency" class="form-control form-control-sm">
+                            <option value="1-0-1 (Morning & Night)">1-0-1 (Morning &amp; Night)</option>
+                            <option value="1-1-1 (Thrice daily)">1-1-1 (Thrice daily)</option>
+                            <option value="1-0-0 (Morning only)">1-0-0 (Morning only)</option>
+                            <option value="0-0-1 (Night only)">0-0-1 (Night only)</option>
+                            <option value="1-0-1-1 (Four times daily)">1-0-1-1 (4 times daily)</option>
+                            <option value="SOS (As needed)">SOS (As needed)</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select name="timing" class="form-control form-control-sm">
+                            <option value="After Food">After Food</option>
+                            <option value="Before Food">Before Food</option>
+                            <option value="With Water">With Water</option>
+                            <option value="At Bedtime">At Bedtime</option>
+                            <option value="Empty Stomach">Empty Stomach</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" name="duration" class="form-control form-control-sm" placeholder="5 Days" value="5 Days">
+                    </td>
+                    <td>
+                        <input type="number" name="quantity" class="form-control form-control-sm" placeholder="10" value="10" min="1">
+                    </td>
+                    <td>
+                        <input type="text" name="instructions" class="form-control form-control-sm" placeholder="Take with warm water">
+                    </td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-outline text-red" onclick="removeMedicationRow(this)" title="Remove row">
+                            <i class='bx bx-x'></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            }
+
+            function removeMedicationRow(btn) {
+                const tbody = document.getElementById('medicationRows');
+                if (tbody.children.length > 1) {
+                    btn.closest('tr').remove();
+                } else {
+                    alert('At least one medication is required in the prescription.');
+                }
+            }
+        </script>
+    </div>
+</div>
+</body>
+</html>
