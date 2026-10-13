@@ -533,15 +533,33 @@ application-local.properties
 
 ---
 
-## 👨‍💻 Team Contributions
+# Team Contribution – Hospital Management System
 
-This Hospital Management System is designed and developed as an academic group project.
+**1. Soumalya Jana – Backend Developer**
+- Developed server-side functionality using Java and Spring Boot.
+- Worked on REST APIs and business logic.
+- Integrated backend services with the database.
 
-| Role | Operational Scope & Responsibilities |
-| :--- | :--- |
-| **Database Architect** | Designed 18-table schema, primary/foreign key relationships, indexing, and Aiven Cloud deployment. |
-| **Backend Developer** | Built Java Spring Boot application, REST API endpoints, JPA Repositories, and business logic layers. |
-| **Frontend Developer** | Designed user interfaces with Bootstrap, created interactive forms, and integrated REST APIs via Fetch JS. |
+**2. Ujjwal Kumar – Database Developer**
+- Designed and managed the MySQL database structure.
+- Created tables with primary keys, foreign keys, and constraints.
+- Managed table relationships and master data for departments, laboratory tests, rooms, and beds.
+
+**3. Simran Sarraf – Frontend Developer**
+- Designed the user interface and dashboard.
+- Developed forms, tables, and navigation pages.
+- Worked on connecting frontend components with backend APIs.
+
+**4. Sneha Chotia – Module Developer**
+- Worked on the functional modules of the Hospital Management System.
+- Focused on Patient Management, Doctor Management, Appointment Management, Laboratory Management, Room and Bed Management, and Billing.
+- Coordinated with the backend and database developers for module integration.
+
+**5. Suhana Singhal – Testing, Documentation and Report**
+- Tested the system's functionality and identified errors.
+- Prepared project documentation and the final project report.
+- Created the PowerPoint presentation (PPT).
+- Organized screenshots, diagrams, testing details, and project information for submission.
 
 ---
 
